@@ -22,11 +22,11 @@ sim_duration_min = 5;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
 
-x_real = zeros(5,length(t_s));
+x_real = zeros(9,length(t_s));
 
 % initial condition for the states
-% xReal = [p q r Alpha Beta]';
-x_real(:,1) = [0.1 0.1 0.1 9.23e-2 0.0124]';
+% xReal = [q0 q1 q2 q3 p q r Alpha Beta]';
+x_real(:,1) = [1 0 0 0 0.1 0.1 0.1 9.23e-2 0.0124]';
 
 control_torque =[0 0 0 0 0]';
 % controlTorque = [contAileron1 contAileron2 contElevator1 contElevator2

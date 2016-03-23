@@ -19,7 +19,7 @@
 %          VT .:. total airspeed of the aircraft
 %          conAil1, conAil2, conEle1,conEle2, conRud .:. controlTorques  
 
-% Attitude dynamic equations of motion 
+% Attitude kinematic and dynamic equations of motion 
 
 function state_dot = modelDrone(state_init, flig_cond, con_torq)
 
@@ -27,11 +27,15 @@ global g_e mass inert wing_tot_surf wing_span m_wing_chord cl_alpha1 cl_ele1 cl_
 global cl_beta cm_1 cm_alpha1 cm_ele1 cm_q cm_alpha cn_rud_contr cn_r_tilda cn_beta cx1 cz_alpha
 global cz1 cy1
 
-p = state_init(1);
-q = state_init(2);
-r = state_init(3);
-alph = state_init(4);
-bet  = state_init(5);
+q0 = state_init(1);
+q1 = state_init(2);
+q2 = state_init(3);
+q3 = state_init(4);
+p = state_init(5);
+q = state_init(6);
+r = state_init(7);
+alph = state_init(8);
+bet  = state_init(9);
 
 con_ail1 = con_torq(1);
 con_ail2 = con_torq(2);
@@ -63,9 +67,9 @@ q_tilda = m_wing_chord * q / 2 / vt;
 % (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
 
 cl = cl_alpha1 * con_ail1 - cl_alpha1 * con_ail2 + cl_ele1 * con_ele1 - cl_ele1 * con_ele2 ...
-    + cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
++ cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
 cm = cm_1 + cm_alpha1 * con_ail1 + cm_alpha1 * con_ail2 + cm_ele1 * con_ele1 + cm_ele1 * con_ele2 ...
-    + cm_q * q_tilda + cm_alpha * alph;
++ cm_q * q_tilda + cm_alpha * alph;
 cn = cn_rud_contr * con_rud + cn_r_tilda * r_tilda + cn_beta * bet;
 
 l = dyn_pressure * wing_tot_surf * wing_span * cl;
@@ -77,7 +81,9 @@ n = dyn_pressure * wing_tot_surf * wing_span * cn;
 % Skew symmetric matrix is used for cross product
 pqr_dot = inert \ ([l m n]' - [ 0 -r q; r 0 -p;-q p 0] * inert * [p q r]');
 alpha_dot = q + g_e / vt * (1 + dyn_pressure * wing_tot_surf / mass / ...
-    g_e * ((cx1 + cz_alpha) * alph + cz1));
+							g_e * ((cx1 + cz_alpha) * alph + cz1));
 beta_dot = - r + dyn_pressure * wing_tot_surf * cy1 / mass / vt * bet;
 
-state_dot = [pqr_dot; alpha_dot; beta_dot];
+q_dot = 1 / 2 * [-q1 -q2 -q3; q0 -q3 q2; q3 q0 -q1; -q2 q1 q0] * [ p q r]';
+
+state_dot = [q_dot; pqr_dot; alpha_dot; beta_dot];
