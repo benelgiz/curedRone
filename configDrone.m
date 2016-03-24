@@ -44,7 +44,7 @@ m_wing_chord = 0.58;
 prop_dia = 0.79;
 
 % engine speed reference signal nc 
-nc = 70;
+nc = 300;
 
 % time constant of the engine tho_n [s]
 tho_n = 0.4;

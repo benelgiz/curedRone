@@ -22,18 +22,18 @@ sim_duration_min = 5;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
 
-x_real = zeros(16,length(t_s));
+x_real = zeros(14,length(t_s));
 
 % initial condition for the states
-% xReal = [q0 q1 q2 q3 p q r Alpha Beta x_n y_e z_d u_b v_b w_b eng_speed]';
-x_real(:,1) = [1 0 0 0 0.1 0.1 0.1 9.23e-2 0.0124 0 0 0 0 0 0 1e-2]';
+% xReal = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b eng_speed]';
+x_real(:,1) = [1 0 0 0 0.1 0.1 0.1 0 0 0 1e-3 1e-3 1e-3 1e-2]';
 
 control_torque =[0 0 0 0 0]';
 % controlTorque = [contAileron1 contAileron2 contElevator1 contElevator2
 % contRudder]'
 
-flig_conditions = [40 500]';
-% flightConditions = [vt altitude]'
+flig_conditions = [500 0 0 0]' ;
+% flightConditions = [altitude wind_n wind_e wind_d]'
 
 for i=1:length(t_s)-1
   % Nonlinear attitude propagation

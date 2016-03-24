@@ -30,7 +30,7 @@ global cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3
 
 % q .:. quaternion
 % q = q0 + q1 * i + q2 * j + q3 * k;  
-q0 = state_init(1); 
+q0 = state_init(1);
 q1 = state_init(2);
 q2 = state_init(3);
 q3 = state_init(4);
@@ -41,26 +41,20 @@ p = state_init(5);
 q = state_init(6);
 r = state_init(7);
 
-% alph .:. angle of attack
-alph = state_init(8);
-
-% bet .:. side slip angle
-bet  = state_init(9);
-
 % x .:. position of the drone in North East Down reference frame
 % x = [x_n y_e z_d]';
-x_n = state_init(10);
-y_e = state_init(11);
-z_d = state_init(12);
+x_n = state_init(8);
+y_e = state_init(9);
+z_d = state_init(10);
 
 % v .:. translational velocity of the drone
 % v = [u_b v_b w_b]
-u_b = state_init(13);
-v_b = state_init(14);
-w_b = state_init(15);
+u_b = state_init(11);
+v_b = state_init(12);
+w_b = state_init(13);
 
 % eng_speed .:. engine speed
-eng_speed = state_init(16);
+eng_speed = state_init(14);
 
 con_ail1 = con_torq(1);
 con_ail2 = con_torq(2);
@@ -68,8 +62,27 @@ con_ele1 = con_torq(3);
 con_ele2 = con_torq(4);
 con_rud  = con_torq(5);
 
-vt = flig_cond(1); % Total airspeed of drone
-altitude = flig_cond(2); % altitude
+% Flight condition 
+altitude = flig_cond(1); % altitude
+
+wind_ned = flig_cond(2:4); % wind vector in North East Down frame
+
+% Direction cosine matrix C^b_n representing the transformation from
+% the navigation frame to the body frame
+c_n_to_b = [1 - 2 * (q2^2 + q3^2) 2 * (q1 * q2 + q0 * q3) 2 * (q1 * q3 - q0 * q2); ...
+2 * (q1 * q2 - q0 * q3) 1 - 2 * (q1^2 + q3^2) 2 * (q2 * q3 + q0 * q1); ...
+2 * (q1 * q3 + q0 * q2) 2 * (q2 * q3 - q0 * q1) 1 - 2 * (q1^2 + q2^2)];
+
+vel_t = [u_b; v_b; w_b] - c_n_to_b * wind_ned;
+
+% Total airspeed of drone
+vt = sqrt(vel_t(1)^2 + vel_t(2)^2 + vel_t(3)^2);
+
+% alph .:. angle of attack
+alph = atan2(vel_t(3),vel_t(1));
+
+% bet .:. side slip angle
+bet  = asin(vel_t(2)/vt);
 
 % Low altitude atmosphere model (valid up to 11 km)
 % t0 = 288.15; % Temperature [K]
@@ -103,18 +116,9 @@ n = dyn_pressure * wing_tot_surf * wing_span * cn;
 % Attitude dynamics of drone
 % Skew symmetric matrix is used for cross product
 pqr_dot = inert \ ([l m n]' - [ 0 -r q; r 0 -p;-q p 0] * inert * [p q r]');
-alpha_dot = q + g_e / vt * (1 + dyn_pressure * wing_tot_surf / mass / ...
-							g_e * ((cx1 + cz_alpha) * alph + cz1));
-beta_dot = - r + dyn_pressure * wing_tot_surf * cy1 / mass / vt * bet;
 
 % Attitude kinematics of drone
 q_dot = 1 / 2 * [-q1 -q2 -q3; q0 -q3 q2; q3 q0 -q1; -q2 q1 q0] * [p q r]';
-
-% Direction cosine matrix C^b_n representing the transformation from
-% the navigation frame to the body frame
-c_n_to_b = [1 - 2 * (q2^2 + q3^2) 2 * (q1 * q2 + q0 * q3) 2 * (q1 * q3 - q0 * q2); ...
-2 * (q1 * q2 - q0 * q3) 1 - 2 * (q1^2 + q3^2) 2 * (q2 * q3 + q0 * q1); ...
-2 * (q1 * q3 + q0 * q2) 2 * (q2 * q3 - q0 * q1) 1 - 2 * (q1^2 + q2^2)];
 
 % kinematics for translational motion of the center of mass of the drone
 x_dot = c_n_to_b' * [u_b v_b w_b]';
@@ -149,4 +153,4 @@ g_e * cos(eul_ang(1)) * cos(eul_ang(2))] + ...
 1 / mass * ([ft; 0; 0] + c_b_to_w' * [xf_w; yf_w; zf_w]) - ...
 [(q * w_b - r * v_b); (r * u_b - p * w_b); (p * v_b - q * u_b)];
 
-state_dot = [q_dot; pqr_dot; alpha_dot; beta_dot; x_dot; v_dot; eng_speed_dot];
+state_dot = [q_dot; pqr_dot; x_dot; v_dot; eng_speed_dot];
