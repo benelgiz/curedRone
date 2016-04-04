@@ -113,6 +113,10 @@ l = dyn_pressure * wing_tot_surf * wing_span * cl;
 m = dyn_pressure * wing_tot_surf * m_wing_chord * cm;
 n = dyn_pressure * wing_tot_surf * wing_span * cn;
 
+l = 0;
+m = 0;
+n = 
+
 % Dynamical equations of motion of the drone
 
 % Attitude dynamics of drone
