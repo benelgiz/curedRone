@@ -15,12 +15,4 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-function xn = rungeKutta4(func, xo, fc, u, h)
-
-k1 = feval(func, xo, fc, u);
-k2 = feval(func, xo + 1/2 * h * k1 , fc, u);
-k3 = feval(func, xo + 1/2 * h * k2 , fc, u);
-k4 = feval(func, xo + h * k3, fc, u);
-
-xn = xo + 1/6 * h * (k1 + 2 * k2 + 2 * k3 + k4);
-end
+% FORCE AND MOMENT CALCULATION

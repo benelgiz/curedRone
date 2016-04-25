@@ -15,33 +15,27 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-% inputs : stateInitial .:. States from the previous time t - 1. 
-%          VT .:. total airspeed of the aircraft
-%          conAil1, conAil2, conEle1,conEle2, conRud .:. controlTorques 
+% FORCE AND MOMENT CALCULATION
 
-% Attitude kinematic and dynamic equations of motion
-% Translational Motion 
+function force_moment = calcForceMoment(state, control_deflections, eng_speed, wind_ned)
 
-function state_dot = modelDrone(state_init, flig_cond, con_torq)
-
-global g_e mass inert wing_tot_surf wing_span m_wing_chord prop_dia nc tho_n cl_alpha1 cl_ele1 cl_p 
+global g_e mass wing_tot_surf wing_span m_wing_chord prop_dia cl_alpha1 cl_ele1 cl_p 
 global cl_r cl_beta cm_1 cm_alpha1 cm_ele1 cm_q cm_alpha cn_rud_contr cn_r_tilda cn_beta cx1 
 global cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3
-
 % q .:. quaternion
 % q = q0 + q1 * i + q2 * j + q3 * k;  
-q0 = state_init(1);
-q1 = state_init(2);
-q2 = state_init(3);
-q3 = state_init(4);
+q0 = state(1);
+q1 = state(2);
+q2 = state(3);
+q3 = state(4);
 
 % w .:. angular velocity vector with components p, q, r
 % w = [p q r]' 
 % w describes the angular motion of the body frame b with respect to
 % navigation frame ned, expressed in body frame.
-p = state_init(5);
-q = state_init(6);
-r = state_init(7);
+p = state(5);
+q = state(6);
+r = state(7);
 
 % x .:. position of the drone in North East Down reference frame
 % x = [x_n y_e z_d]';
@@ -51,23 +45,18 @@ r = state_init(7);
 
 % v .:. translational velocity of the drone
 % v = [u_b v_b w_b]
-u_b = state_init(11);
-v_b = state_init(12);
-w_b = state_init(13);
+u_b = state(11);
+v_b = state(12);
+w_b = state(13);
 
-% eng_speed .:. engine speed
-eng_speed = state_init(14);
-
-con_ail1 = con_torq(1);
-con_ail2 = con_torq(2);
-con_ele1 = con_torq(3);
-con_ele2 = con_torq(4);
-con_rud  = con_torq(5);
+con_ail1 = control_deflections(1);
+con_ail2 = control_deflections(2);
+con_ele1 = control_deflections(3);
+con_ele2 = control_deflections(4);
+con_rud  = control_deflections(5);
 
 % Flight condition 
-altitude = state_init(10); % altitude
-
-wind_ned = flig_cond(1:3); % wind vector in North East Down frame
+altitude = state(10); % altitude
 
 % Direction cosine matrix C^b_n representing the transformation from
 % the navigation frame to the body frame
@@ -113,29 +102,9 @@ l = dyn_pressure * wing_tot_surf * wing_span * cl;
 m = dyn_pressure * wing_tot_surf * m_wing_chord * cm;
 n = dyn_pressure * wing_tot_surf * wing_span * cn;
 
-l = 0;
-m = 0;
-n = 
-
-% Dynamical equations of motion of the drone
-
-% Attitude dynamics of drone
-% Skew symmetric matrix is used for cross product
-pqr_dot = inert \ ([l m n]' - [ 0 -r q; r 0 -p; -q p 0] * (inert * [p q r]'));
-
-% Attitude kinematics of drone
-q_dot = 1 / 2 * [-q1 -q2 -q3; q0 -q3 q2; q3 q0 -q1; -q2 q1 q0] * [p q r]';
-
-% x_dot is in NED frame. So a change in expression of v is needed.
-% If A is any vector
-% A^n = C^n_b * A^b = c_b_to_n * A^b = inv(c_n_to_b) * A^b = c_n_to_b' * A^b
-% kinematics for translational motion of the center of mass of the drone
-x_dot = c_n_to_b' * [u_b v_b w_b]';
+moment = [l m n]';
 
 [pisi teta fi] = quat2angle([q0 q1 q2 q3]);
-
-% dynamics for engine speed
-eng_speed_dot = - 1 / tho_n * eng_speed + 1 / tho_n * nc;
 
 % ft .:. thrust force 
 ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / pi / eng_speed + ...
@@ -155,10 +124,7 @@ zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);
 c_b_to_w = [cos(alph)* cos(bet) sin(bet) sin(alph) * cos(bet);...
 -sin(bet) * cos(alph) cos(bet) -sin(alph) * sin(bet); -sin(alph) 0 cos(alph)];
 
-% dynamics for translational motion of the center of mass of the drone
-v_dot = [- g_e * sin(teta); g_e * sin(fi) * cos(teta); ...
-g_e * cos(fi) * cos(teta)] + ...
-1 / mass * ([ft; 0; 0] + c_b_to_w' * [xf_w; yf_w; zf_w]) - ...
-[(q * w_b - r * v_b); (r * u_b - p * w_b); (p * v_b - q * u_b)];
+force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...
+    ([ft; 0; 0] + c_b_to_w' * [xf_w; yf_w; zf_w]);
+force_moment = [force; moment];
 
-state_dot = [q_dot; pqr_dot; x_dot; v_dot; eng_speed_dot];
