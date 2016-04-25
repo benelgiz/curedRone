@@ -1,17 +1,4 @@
 # curedRone
-
-This branch 'validation' is used to validate the written translational and attitude motion dynamics and kinematics with MATLAB Simulink 6DOF block. 
-The codes written in MATLAB is compared to the Simulink 6DOF. In the code part, the numeric integration is written by hand, not done by simulink. The idea is to check if the equations are correct, numerical integration is correct and to be able to catch any bugs on coordinate transformations or God knows whatever else. 
-The tricks gasped during this comparison is that the RK4 implementation of Simulink could be different than you expected. To be more clear, in the RK4 implementation, be sure that during the calculation of coefficients k1, k2, k3, k4; not only the states are evaluated differently but also the forces and moments. Although the forces and moments of t+1 are not available in a physical sense, since these values are available to the 6DOF block, it is by default interpolating this data values during the calculation of k2, k3, and k4 such that;
-k1 = feval('model', x0, force_moment_i)
-k2 = feval('model', x0 + 1/2 * h * k1, (force_moment_i + force_moment_i+1)/2)
-k3 = feval('model', x0 + 1/2 * h * k2, (force_moment_i + force_moment_i+1)/2)
-k4 = feval('model', x0 + h * k3, force_moment_i+2)
-
-while what i was doing is, using force_moment_i for each of the coefficient calculation, since the data of force_moment(i+1) are not avaliable (since they are calculated depending on the states, the idea of using RK4 is to calculate x_i+1, 
-force_moment_i+1 = func(x_i+1), there is no way to know force_moment_i+1 beforehand). 
-
-The real case could be imitated by just calculating the forces and moments within the model, so for each feval operation, forces and moments could be evaluated with the iterated values of the states in each coefficient calculation k1, k2, k3, k4.
 aim : This work is to code fault tolerant control algorithms to apply small UAS, preferably utilizing Paparazzi Autopilot System.
 
 HOW TO:
