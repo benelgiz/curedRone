@@ -120,7 +120,7 @@ moment = [l m n]';
 
 % tilda is to ignore output of the quat2angle function, since it is not
 % used, a warning appears otherwise
-[~, teta fi] = quat2angle([q0 q1 q2 q3]);
+[~, teta, fi] = quat2angle([q0 q1 q2 q3]);
 
 % ft .:. thrust force 
 ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / pi / eng_speed + ...

@@ -19,7 +19,7 @@
 
 configDrone;
 
-ti = 0.1;
+ti = 0.02;
 sim_duration_min = 10;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
