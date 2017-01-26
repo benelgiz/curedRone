@@ -24,9 +24,10 @@
 
 function state_dot = modelDrone(state_prev, contr_deflect, wind_ned)
 
-global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_alpha1 cl_ele1 cl_p 
-global cl_r cl_beta cm_1 cm_alpha1 cm_ele1 cm_q cm_alpha cn_rud_contr cn_r_tilda cn_beta cx1 
-global cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3 tho_n nc
+global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_ail cl_p 
+global cl_r cl_beta cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
+global cz1 cz_alpha cft1 cft2 cft_rpm cy_beta cy_p  cy_r  cy_ail
+global cx1 cx_alpha cx_alpha2 cx_beta2 tho_n nc
 
 quat_normalize_gain = 1;
 
@@ -64,11 +65,8 @@ eng_speed = state_prev(14);
 altitude = state_prev(10);
 
 % Control surface deflections
-con_ail1 = contr_deflect(1);
-con_ail2 = contr_deflect(2);
-con_ele1 = contr_deflect(3);
-con_ele2 = contr_deflect(4);
-con_rud  = contr_deflect(5);
+con_ail = contr_deflect(1);
+con_ele = contr_deflect(2);
 
 % If A is any vector
 % A^n = C^n_b * A^b = c_b_to_n * A^b = inv(c_n_to_b) * A^b = c_n_to_b' * A^b
@@ -106,11 +104,9 @@ q_tilda = m_wing_chord * q / 2 / vt;
 
 % calculation of aerodynamic derivatives
 % (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
-cl = cl_alpha1 * con_ail1 - cl_alpha1 * con_ail2 + cl_ele1 * con_ele1 - cl_ele1 * con_ele2 ...
-+ cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
-cm = cm_1 + cm_alpha1 * con_ail1 + cm_alpha1 * con_ail2 + cm_ele1 * con_ele1 + cm_ele1 * con_ele2 ...
-+ cm_q * q_tilda + cm_alpha * alph;
-cn = cn_rud_contr * con_rud + cn_r_tilda * r_tilda + cn_beta * bet;
+cl = cl_ail * con_ail + cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
+cm = cm_ele * con_ele + cm_q * q_tilda + cm_alpha * alph;
+cn = cn_ail * con_ail + cn_p * p_tilda + cn_r * r_tilda + cn_beta * bet;
 
 l = dyn_pressure * wing_tot_surf * wing_span * cl;
 m = dyn_pressure * wing_tot_surf * m_wing_chord * cm;
@@ -123,14 +119,13 @@ moment = [l m n]';
 [~, teta, fi] = quat2angle([q0 q1 q2 q3]);
 
 % ft .:. thrust force 
-ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / pi / eng_speed + ...
-									  cft3 * vt^2 / prop_dia^2 / pi^2 / eng_speed^2);
+ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + cft_rpm * eng_speed / 60);
 % Model of the aerodynamic forces in wind frame
 % xf_w .:. drag force in wind frame
 xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
 									   cx_beta2 * bet^2);
 % yf_w .:. lateral force in wind frame
-yf_w = dyn_pressure * wing_tot_surf * (cy1 * bet);
+yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
 % zf_w .:. lift force in wind frame
 zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);
 

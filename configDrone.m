@@ -15,12 +15,9 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-clear all;
-clc;
-
-global g_e mass inert wing_tot_surf wing_span m_wing_chord prop_dia nc tho_n cl_alpha1 cl_ele1 cl_p 
-global cl_r cl_beta cm_1 cm_alpha1 cm_ele1 cm_q cm_alpha cn_rud_contr cn_r_tilda cn_beta cx1 
-global cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3
+global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_ail cl_p 
+global cl_r cl_beta cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta  
+global cx1 cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3 tho_n nc
 
 % Earth gravitational constant
 g_e = 9.81;
