@@ -17,22 +17,23 @@
 
 % DRONE DYNAMICS SIMULATION
 
+clear all;
+clc;
 configDrone;
 
 ti = 0.02;
-sim_duration_min = 10;
+sim_duration_min = 1/30;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
 
-x_real = zeros(14,length(t_s));
+x_real = zeros(13,length(t_s));
 
 % initial condition for the states
-% xReal = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b eng_speed]';
-x_real(:,1) = [1 0 0 0 0 0 0 0 0 0 1e-5 1e-5 1e-5 1e-2]';
+% xReal = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b]';
+x_real(:,1) = [1 0 0 0 0 0 0 0 0 0 13 1e-5 1.7]';
 
-control_deflections = [0 0 0 0 0]';
-% controlTorque = [contAileron1 contAileron2 contElevator1 contElevator2
-% contRudder]'
+control_input = [0 0 110]';
+% control_input = [contAileron contElevator contEngine]'
 
 wind_ned = [0 0 0]';
 % wind_ned .:. [wind_n wind_e wind_d]'
@@ -40,5 +41,5 @@ wind_ned = [0 0 0]';
 for i=1:length(t_s)-1
   % Nonlinear attitude propagation
   % Integration via Runge - Kutta integration Algorithm
-  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_deflections, wind_ned, ti); 
+  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_input, wind_ned, ti); 
 end

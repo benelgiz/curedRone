@@ -15,66 +15,72 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_ail cl_p 
-global cl_r cl_beta cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta  
-global cx1 cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3 tho_n nc
+global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia tho_n
+global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
+global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
+
 
 % Earth gravitational constant
 g_e = 9.81;
 
 % UAV mass [kg]
-mass = 28;
+mass = 1.1;
 
+% inert = [0.0247 0 0; 0 0.0158 0; 0 0 0.0374];
 % UAV inertia matrix [kg*m^2]
-inert = [2.56 0 0.5; 0 10.9 0; 0.5 0 11.3];
+inert = [0.247 0 0; 0 0.158 0; 0 0 0.374];
 
 % wing total surface S [m^2]
-wing_tot_surf = 1.8;
+wing_tot_surf = 0.27;
 
 % wing span b [m]
-wing_span = 3.1;
+wing_span = 1.288;
 
 % mean aerodynamic wing chord c [m]
-m_wing_chord = 0.58;
+m_wing_chord = 0.21;
 
 % diameter of the propeller prop_dia [m]
-prop_dia = 0.79;
-
-% engine speed reference signal nc 
-nc = 80;
+prop_dia = 0.228;
 
 % time constant of the engine tho_n [s]
-tho_n = 0.4;
+tho_n = 0.05;
 
 % roll derivatives 
-cl_alpha1 = - 3.395e-2;% cl_alpha2 = - clalpha1
-cl_ele1 = - 0.485e-2;% cl_ele2   = - clele1
-cl_p = - 1.92e-1;
-cl_r = 3.61e-2;
-cl_beta = - 1.3e-2;
+cl_ail = -0.1956e-2; 
+cl_p = -4.095e-1;
+cl_r = 6.203e-2;
+cl_beta = 3.319e-2;
 
 % pitch derivatives
-cm_1 = 2.08e-2;
-cm_alpha1 = 0.389e-1;% cmalpha2 = cmalpha1
-cm_ele1 = 2.725e-1;% cmele2 = cmele1
-cm_q = -9.83;
-cm_alpha = -9.03e-2;
+cm_0 = 0.043; % for now...
+cm_ele = -0.076e-1;
+cm_q = -1.6834;
+cm_alpha = -32.34e-2;
 
 % yaw derivatives
-cn_rud_contr = 5.34e-2;
-cn_r_tilda = -2.14e-1;
-cn_beta = 8.67e-2;
+cn_ail = -0.0126e-2;
+cn_p = -4.139e-2;
+cn_r = -0.1002e-1;
+cn_beta = 2.28e-2;
 
-% lift, drag, side force derivatives
-cx1 = -2.12e-2;
-cx_alpha = -2.66e-2;
-cx_alpha2 = -1.55;
-cx_beta2 = -4.01e-1;
-cz_alpha = -3.25;
-cz1 = 1.29e-2;
-cy1 = -3.79e-1;
+% lift derivatives
+cz_0 = -4.7e-2;
+cz_alpha = 6.386e-2;
+cz_q = 4.8198;
+cz_ele = 1.6558e-2;
+
+% side force derivative
+cy_beta = -2.708e-1;
+cy_p = 1.695e-2;
+cy_r = 5.003e-2;
+cy_ail = 0.0254e-2;
+
+
+% drag derivative
+cx_0 = 2.313e-2;
+cx_k = 1.897e-1; 
 
 % thrust derivatives 
-cft1 = 8.42e-2;
-cft2 = -1.36e-1;
-cft3 = -9.28e-1;
+cft1 = 1.342e-1;
+cft2 = -1.975e-1;
+cft_rpm = 7.048e-6;

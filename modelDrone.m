@@ -22,12 +22,11 @@
 % Attitude kinematic and dynamic equations of motion
 % Translational Motion 
 
-function state_dot = modelDrone(state_prev, contr_deflect, wind_ned)
+function state_dot = modelDrone(state_prev, contr_input, wind_ned)
 
-global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_ail cl_p 
-global cl_r cl_beta cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
-global cz1 cz_alpha cft1 cft2 cft_rpm cy_beta cy_p  cy_r  cy_ail
-global cx1 cx_alpha cx_alpha2 cx_beta2 tho_n nc
+global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
+global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
+global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
 
 quat_normalize_gain = 1;
 
@@ -58,15 +57,14 @@ u_b = state_prev(11);
 v_b = state_prev(12);
 w_b = state_prev(13);
 
-% Engine speed
-eng_speed = state_prev(14);
-
 % Flight altitude
 altitude = state_prev(10);
 
-% Control surface deflections
-con_ail = contr_deflect(1);
-con_ele = contr_deflect(2);
+% Control inputs
+con_ail = contr_input(1);    % aileron deflection
+con_ele = contr_input(2);    % elevator deflection 
+eng_speed = contr_input(3);   % engine speed reference signal 
+                            
 
 % If A is any vector
 % A^n = C^n_b * A^b = c_b_to_n * A^b = inv(c_n_to_b) * A^b = c_n_to_b' * A^b
@@ -81,7 +79,11 @@ vel_t = [u_b; v_b; w_b] - c_n_to_b * wind_ned;
 % Total airspeed of drone
 vt = sqrt(vel_t(1)^2 + vel_t(2)^2 + vel_t(3)^2);
 
+% vel_t(3)
+% vel_t(1)
+
 % alph .:. angle of attack
+
 alph = atan2(vel_t(3),vel_t(1));
 
 % bet .:. side slip angle
@@ -105,7 +107,7 @@ q_tilda = m_wing_chord * q / 2 / vt;
 % calculation of aerodynamic derivatives
 % (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
 cl = cl_ail * con_ail + cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
-cm = cm_ele * con_ele + cm_q * q_tilda + cm_alpha * alph;
+cm = cm_0 + cm_ele * con_ele + cm_q * q_tilda + cm_alpha * alph;
 cn = cn_ail * con_ail + cn_p * p_tilda + cn_r * r_tilda + cn_beta * bet;
 
 l = dyn_pressure * wing_tot_surf * wing_span * cl;
@@ -121,13 +123,12 @@ moment = [l m n]';
 % ft .:. thrust force 
 ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + cft_rpm * eng_speed / 60);
 % Model of the aerodynamic forces in wind frame
-% xf_w .:. drag force in wind frame
-xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
-									   cx_beta2 * bet^2);
+% zf_w .:. lift force in wind frame
+zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele);
 % yf_w .:. lateral force in wind frame
 yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
-% zf_w .:. lift force in wind frame
-zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);
+% xf_w .:. drag force in wind frame
+xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2);
 
 % describe forces in body frame utilizing rotation matrix c^w_b
 % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
@@ -155,6 +156,7 @@ x_dot = c_n_to_b' * [u_b v_b w_b]';
 v_dot = force / mass - [(q * w_b - r * v_b); (r * u_b - p * w_b); (p * v_b - q * u_b)];
 
 % dynamics for engine speed
-eng_speed_dot = - 1 / tho_n * eng_speed + 1 / tho_n * nc;
+%eng_speed_dot = - 1 / tho_n * eng_speed + 1 / tho_n * engine_ref;
 
-state_dot = [q_dot; pqr_dot; x_dot; v_dot; eng_speed_dot];
+%state_dot = [q_dot; pqr_dot; x_dot; v_dot; eng_speed_dot];
+state_dot = [q_dot; pqr_dot; x_dot; v_dot];
