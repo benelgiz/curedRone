@@ -22,7 +22,7 @@ clc;
 configDrone;
 
 ti = 0.02;
-sim_duration_min = 1/30;
+sim_duration_min = 20;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
 

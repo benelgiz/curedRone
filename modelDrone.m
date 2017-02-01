@@ -28,6 +28,8 @@ global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
 global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
 global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
 
+global cx1 cx_alpha cx_alpha2 cx_beta2 cz1 cy1
+
 quat_normalize_gain = 1;
 
 % q .:. quaternion
@@ -79,9 +81,6 @@ vel_t = [u_b; v_b; w_b] - c_n_to_b * wind_ned;
 % Total airspeed of drone
 vt = sqrt(vel_t(1)^2 + vel_t(2)^2 + vel_t(3)^2);
 
-% vel_t(3)
-% vel_t(1)
-
 % alph .:. angle of attack
 
 alph = atan2(vel_t(3),vel_t(1));
@@ -120,15 +119,36 @@ moment = [l m n]';
 % used, a warning appears otherwise
 [~, teta, fi] = quat2angle([q0 q1 q2 q3]);
 
+% ro * eng_speed^2 * prop_dia^4
+%  vt / prop_dia / eng_speed/60
+%  cft_rpm * eng_speed / 60
 % ft .:. thrust force 
 ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + cft_rpm * eng_speed / 60);
 % Model of the aerodynamic forces in wind frame
-% zf_w .:. lift force in wind frame
-zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele);
-% yf_w .:. lateral force in wind frame
+
+% dyn_pressure * wing_tot_surf
+% % zf_w .:. lift force in wind frame %MAKO
+% zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele)
+
+% zf_w .:. lift force in wind frame %ETH
+zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
+
+
+
+% % yf_w .:. lateral force in wind frame %MAKO
 yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
-% xf_w .:. drag force in wind frame
-xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2);
+
+% yf_w .:. lateral force in wind frame %ETH
+% yf_w = dyn_pressure * wing_tot_surf * (cy1 * bet); %ETH
+
+
+
+% % xf_w .:. drag force in wind frame %MAKO
+% xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2)
+
+% xf_w .:. drag force in wind frame %ETH
+xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
+									   cx_beta2 * bet^2);   
 
 % describe forces in body frame utilizing rotation matrix c^w_b
 % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
@@ -138,6 +158,9 @@ c_b_to_w = [cos(alph)* cos(bet) sin(bet) sin(alph) * cos(bet);...
 
 force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...
     ([ft; 0; 0] + c_b_to_w' * [xf_w; yf_w; zf_w]);
+
+% mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)]
+%  c_b_to_w' * [xf_w; yf_w; zf_w]
 
 % Kinematic and dynamic equations of motion of the drone
 
