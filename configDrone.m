@@ -20,7 +20,9 @@ global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_be
 global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
 
 
-global cx1 cx_alpha cx_alpha2 cx_beta2 cz1 cy1
+global cx1 cx_alpha cx_alpha2 cx_beta2 cz1 cy1  %to compare the force calculation of ETH craft
+
+
 
 % Earth gravitational constant
 g_e = 9.81;
@@ -71,8 +73,11 @@ cn_beta = 2.28e-2;
 % cz_q = 4.8198; %MAKO
 % cz_ele = 1.6558e-2; %MAKO
 
-cz_alpha = -3.25; %ETH UAV
-cz1 = 1.29e-2;%ETH UAV
+% cz_alpha = -3.25; %ETH UAV
+% cz1 = 1.29e-2;%ETH UAV
+
+cz_0 = 0.047; %MAKO 2nd version 
+cz_alpha = -0.06386; % MAKO 2nd version
 
 % % side force derivative
 cy_beta = -2.708e-1; %MAKO
@@ -82,14 +87,14 @@ cy_ail = 0.0254e-2;%MAKO
 
 % cy1 = -3.79e-1;%ETH UAV
  
-% % drag derivative
-% cx_0 = 2.313e-2;%MAKO
-% cx_k = 1.897e-1; %MAKO
+% drag derivative
+cx_0 = 2.313e-2;%MAKO
+cx_k = 1.897e-1; %MAKO
 
-cx1 = -2.12e-2;%ETH UAV
-cx_alpha = -2.66e-2;%ETH UAV
-cx_alpha2 = -1.55;%ETH UAV
-cx_beta2 = -4.01e-1;%ETH UAV
+% cx1 = -2.12e-2;%ETH UAV
+% cx_alpha = -2.66e-2;%ETH UAV
+% cx_alpha2 = -1.55;%ETH UAV
+% cx_beta2 = -4.01e-1;%ETH UAV
 
 % thrust derivatives 
 cft1 = 1.342e-1;

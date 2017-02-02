@@ -130,8 +130,11 @@ ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + 
 % % zf_w .:. lift force in wind frame %MAKO
 % zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele)
 
-% zf_w .:. lift force in wind frame %ETH
-zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
+% % zf_w .:. lift force in wind frame %MAKO 2nd version
+zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph)
+
+% % zf_w .:. lift force in wind frame %ETH
+% zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
 
 
 
@@ -146,9 +149,12 @@ yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r
 % % xf_w .:. drag force in wind frame %MAKO
 % xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2)
 
-% xf_w .:. drag force in wind frame %ETH
-xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
-									   cx_beta2 * bet^2);   
+% xf_w .:. drag force in wind frame %MAKO 2nd version
+xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2)
+
+% % xf_w .:. drag force in wind frame %ETH
+% xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
+% 									   cx_beta2 * bet^2);
 
 % describe forces in body frame utilizing rotation matrix c^w_b
 % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
