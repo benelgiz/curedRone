@@ -15,14 +15,9 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia tho_n
+global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
 global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
 global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
-
-
-global cx1 cx_alpha cx_alpha2 cx_beta2 cz1 cy1  %to compare the force calculation of ETH craft
-
-
 
 % Earth gravitational constant
 g_e = 9.81;
@@ -46,8 +41,8 @@ m_wing_chord = 0.21;
 % diameter of the propeller prop_dia [m]
 prop_dia = 0.228;
 
-% time constant of the engine tho_n [s]
-tho_n = 0.05;
+% % time constant of the engine tho_n [s]
+% tho_n = 0.05;
 
 % roll derivatives 
 cl_ail = -0.1956e-2; 
@@ -56,7 +51,7 @@ cl_r = 6.203e-2;
 cl_beta = 3.319e-2;
 
 % pitch derivatives
-cm_0 = 0.043; % for now...
+cm_0 = 0.043;
 cm_ele = -0.076e-1;
 cm_q = -1.6834;
 cm_alpha = -32.34e-2;
@@ -68,26 +63,26 @@ cn_r = -0.1002e-1;
 cn_beta = 2.28e-2;
 
 % % lift derivatives
-% cz_0 = -4.7e-2; %MAKO
-% cz_alpha = 3.9444; %MAKO
-% cz_q = 4.8198; %MAKO
-% cz_ele = 1.6558e-2; %MAKO
+cz_0 = -4.7e-2; %MAKO
+cz_alpha = 3.9444; %MAKO
+cz_q = 4.8198; %MAKO
+cz_ele = 1.6558e-2; %MAKO
 
 % cz_alpha = -3.25; %ETH UAV
 % cz1 = 1.29e-2;%ETH UAV
 
-cz_0 = 0.047; %MAKO 2nd version 
-cz_alpha = -0.06386; % MAKO 2nd version
+% cz_0 = 0.047; %MAKO 2nd version 
+% cz_alpha = -0.06386; % MAKO 2nd version
 
 % % side force derivative
 cy_beta = -2.708e-1; %MAKO
-cy_p = 1.695e-2;%MAKO
+cy_p = 1.695e-1;%MAKO
 cy_r = 5.003e-2;%MAKO
 cy_ail = 0.0254e-2;%MAKO
 
 % cy1 = -3.79e-1;%ETH UAV
  
-% drag derivative
+% % drag derivative
 cx_0 = 2.313e-2;%MAKO
 cx_k = 1.897e-1; %MAKO
 

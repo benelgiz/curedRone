@@ -26,9 +26,7 @@ function state_dot = modelDrone(state_prev, contr_input, wind_ned)
 
 global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
 global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
-global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
-
-global cx1 cx_alpha cx_alpha2 cx_beta2 cz1 cy1
+global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm   
 
 quat_normalize_gain = 1;
 
@@ -65,8 +63,7 @@ altitude = state_prev(10);
 % Control inputs
 con_ail = contr_input(1);    % aileron deflection
 con_ele = contr_input(2);    % elevator deflection 
-eng_speed = contr_input(3);   % engine speed reference signal 
-                            
+eng_speed = contr_input(3);   % engine speed reference signal      
 
 % If A is any vector
 % A^n = C^n_b * A^b = c_b_to_n * A^b = inv(c_n_to_b) * A^b = c_n_to_b' * A^b
@@ -99,9 +96,16 @@ t_ = 288.15 * (1 - 6.5e-3 * altitude / 288.15);
 ro = 1013e2 * (1 - 6.5e-3 * altitude / 288.15)^5.2561 / 287.3 / t_;
 dyn_pressure = ro * vt^2 / 2;
 
-p_tilda = wing_span * p / 2 / vt;
-r_tilda = wing_span * r / 2 / vt;
-q_tilda = m_wing_chord * q / 2 / vt;
+% p_tilda = wing_span * p / 2 / vt;
+% r_tilda = wing_span * r / 2 / vt;
+% q_tilda = m_wing_chord * q / 2 / vt;
+
+% pqr from body to stability axis
+c_body_to_stability = [cos(alph) 0 sin(alph); 0 1 0; -sin(alph) 0 cos(alph)];
+pqr_tilda = c_body_to_stability * [p q r]';
+p_tilda = pqr_tilda(1);
+q_tilda = pqr_tilda(2);
+r_tilda = pqr_tilda(3);
 
 % calculation of aerodynamic derivatives
 % (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
@@ -128,10 +132,10 @@ ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + 
 
 % dyn_pressure * wing_tot_surf
 % % zf_w .:. lift force in wind frame %MAKO
-% zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele)
+zf_s = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele);
 
-% % zf_w .:. lift force in wind frame %MAKO 2nd version
-zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph)
+% % % zf_w .:. lift force in wind frame %MAKO 2nd version
+% zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph)
 
 % % zf_w .:. lift force in wind frame %ETH
 % zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
@@ -139,31 +143,35 @@ zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph)
 
 
 % % yf_w .:. lateral force in wind frame %MAKO
-yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
+yf_s = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
 
 % yf_w .:. lateral force in wind frame %ETH
 % yf_w = dyn_pressure * wing_tot_surf * (cy1 * bet); %ETH
 
 
+% xf_w .:. drag force in wind frame %MAKO
+xf_s = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_s^2);
 
-% % xf_w .:. drag force in wind frame %MAKO
-% xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2)
 
-% xf_w .:. drag force in wind frame %MAKO 2nd version
-xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2)
+
+% % xf_w .:. drag force in wind frame %MAKO 2nd version
+% xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2);
+
+% % xf_w .:. drag force in wind frame %constant drag
+% xf_s = dyn_pressure * wing_tot_surf * 0.03;
 
 % % xf_w .:. drag force in wind frame %ETH
 % xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
 % 									   cx_beta2 * bet^2);
-
-% describe forces in body frame utilizing rotation matrix c^w_b
-% A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
-% c_b_to_w = C^w_b
-c_b_to_w = [cos(alph)* cos(bet) sin(bet) sin(alph) * cos(bet);...
--sin(bet) * cos(alph) cos(bet) -sin(alph) * sin(bet); -sin(alph) 0 cos(alph)];
+% 
+% % describe forces in body frame utilizing rotation matrix c^w_b
+% % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
+% % c_b_to_w = C^w_b
+% c_b_to_w = [cos(alph)* cos(bet) sin(bet) sin(alph) * cos(bet);...
+% -sin(bet) * cos(alph) cos(bet) -sin(alph) * sin(bet); -sin(alph) 0 cos(alph)];
 
 force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...
-    ([ft; 0; 0] + c_b_to_w' * [xf_w; yf_w; zf_w]);
+    ([ft; 0; 0] + [cos(alph) 0 sin(alph); 0 1 0; -sin(alph) 0 cos(alph)]' * [-xf_s; yf_s; -zf_s]);
 
 % mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)]
 %  c_b_to_w' * [xf_w; yf_w; zf_w]

@@ -21,8 +21,8 @@ clear all;
 clc;
 configDrone;
 
-ti = 0.02;
-sim_duration_min = 1/60;
+ti = 0.01;
+sim_duration_min = 2;
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
 
@@ -30,7 +30,7 @@ x_real = zeros(13,length(t_s));
 
 % initial condition for the states
 % xReal = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b]';
-x_real(:,1) = [1 0 0 0 0 0 0 0 0 0 13 1e-5 1.7]';
+x_real(:,1) = [1 0 0 0 0 0 0 0 0 500 13 1e-5 1.7]';
 
 control_input = [0 0 110]';
 % control_input = [contAileron contElevator contEngine]'
