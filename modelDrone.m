@@ -141,7 +141,6 @@ zf_s = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda +
 % zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
 
 
-
 % % yf_w .:. lateral force in wind frame %MAKO
 yf_s = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
 
@@ -150,8 +149,7 @@ yf_s = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r
 
 
 % xf_w .:. drag force in wind frame %MAKO
-xf_s = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_s^2);
-
+xf_s = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele)^2);
 
 
 % % xf_w .:. drag force in wind frame %MAKO 2nd version
