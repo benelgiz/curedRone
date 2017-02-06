@@ -25,9 +25,8 @@ g_e = 9.81;
 % UAV mass [kg]
 mass = 1.1;
 
-% inert = [0.0247 0 0; 0 0.0158 0; 0 0 0.0374];
 % UAV inertia matrix [kg*m^2]
-inert = [0.247 0 0; 0 0.158 0; 0 0 0.374];
+inert = [0.0247 0 0; 0 0.0158 0; 0 0 0.0374];
 
 % wing total surface S [m^2]
 wing_tot_surf = 0.27;

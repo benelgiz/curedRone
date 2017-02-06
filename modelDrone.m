@@ -15,12 +15,29 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-% inputs : stateInitial .:. States from the previous time t - 1. 
-%          VT .:. total airspeed of the aircraft
-%          conAil1, conAil2, conEle1,conEle2, conRud .:. controlTorques 
-
 % Attitude kinematic and dynamic equations of motion
-% Translational Motion 
+% Translational Motion of a drone
+
+% inputs : state_prev  .:. states from the previous time t - 1. 
+%                          state_prev = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b]'
+%                          where;
+%                               q = q0 + q1 * i + q2 * j + q3 * k
+%                               w .:. describes the angular motion of the body 
+%                                     frame b with respect to navigation frame 
+%                                     North East Down(NED), expressed in body frame
+%                               w = [p q r]' 
+%                               x .:. position of the drone in NED reference frame
+%                               x = [x_n y_e z_d]'
+%                               v .:. inertial velocity vector of the drone center of mass 
+%                               v = [u_b v_b w_b]'
+%                                
+%          contr_input .:. controller inputs
+%                          contr_input = [deflect_ail[degrees] deflect_elev[degrees] engine_speed[rev/s]]'
+%
+%          wind_ned    .:. wind disturbance in NED frame 
+%                          wind_ned = [wind_n wind_e wind_d]'
+
+% outputs : state_dot  .:. time derivative of states
 
 function state_dot = modelDrone(state_prev, contr_input, wind_ned)
 
@@ -40,12 +57,12 @@ q3 = state_prev(4);
 % w .:. angular velocity vector with components p, q, r
 % w = [p q r]' 
 % w describes the angular motion of the body frame b with respect to
-% navigation frame ned, expressed in body frame.
+% navigation frame NED, expressed in body frame.
 p = state_prev(5);
 q = state_prev(6);
 r = state_prev(7);
 
-% x .:. position of the drone in North East Down reference frame
+% x .:. position of the drone in NED reference frame
 % x = [x_n y_e z_d]';
 % x_n = state_prev(8);
 % y_e = state_prev(9);
@@ -61,9 +78,9 @@ w_b = state_prev(13);
 altitude = state_prev(10);
 
 % Control inputs
-con_ail = contr_input(1);    % aileron deflection
-con_ele = contr_input(2);    % elevator deflection 
-eng_speed = contr_input(3);   % engine speed reference signal      
+con_ail = contr_input(1);    % aileron deflection [degrees]
+con_ele = contr_input(2);    % elevator deflection [degrees]
+eng_speed = contr_input(3);   % engine speed reference signal [rev/s]
 
 % If A is any vector
 % A^n = C^n_b * A^b = c_b_to_n * A^b = inv(c_n_to_b) * A^b = c_n_to_b' * A^b
@@ -79,7 +96,6 @@ vel_t = [u_b; v_b; w_b] - c_n_to_b * wind_ned;
 vt = sqrt(vel_t(1)^2 + vel_t(2)^2 + vel_t(3)^2);
 
 % alph .:. angle of attack
-
 alph = atan2(vel_t(3),vel_t(1));
 
 % bet .:. side slip angle
@@ -96,19 +112,16 @@ t_ = 288.15 * (1 - 6.5e-3 * altitude / 288.15);
 ro = 1013e2 * (1 - 6.5e-3 * altitude / 288.15)^5.2561 / 287.3 / t_;
 dyn_pressure = ro * vt^2 / 2;
 
-% p_tilda = wing_span * p / 2 / vt;
-% r_tilda = wing_span * r / 2 / vt;
-% q_tilda = m_wing_chord * q / 2 / vt;
-
 % pqr from body to stability axis
 c_body_to_stability = [cos(alph) 0 sin(alph); 0 1 0; -sin(alph) 0 cos(alph)];
-pqr_tilda = c_body_to_stability * [p q r]';
-p_tilda = pqr_tilda(1);
-q_tilda = pqr_tilda(2);
-r_tilda = pqr_tilda(3);
+pqr_stability = c_body_to_stability * [p q r]';
+
+% dimensionless angular rates in stability frame
+p_tilda = wing_span * pqr_stability(1) / 2 / vt;
+q_tilda = m_wing_chord * pqr_stability(2) / 2 / vt;
+r_tilda = wing_span * pqr_stability(3) / 2 / vt;
 
 % calculation of aerodynamic derivatives
-% (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
 cl = cl_ail * con_ail + cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
 cm = cm_0 + cm_ele * con_ele + cm_q * q_tilda + cm_alpha * alph;
 cn = cn_ail * con_ail + cn_p * p_tilda + cn_r * r_tilda + cn_beta * bet;
@@ -117,59 +130,38 @@ l = dyn_pressure * wing_tot_surf * wing_span * cl;
 m = dyn_pressure * wing_tot_surf * m_wing_chord * cm;
 n = dyn_pressure * wing_tot_surf * wing_span * cn;
 
-moment = [l m n]';
+moment_stabFrame = [l m n]';
+moment = c_body_to_stability' * moment_stabFrame;
 
 % tilda is to ignore output of the quat2angle function, since it is not
 % used, a warning appears otherwise
 [~, teta, fi] = quat2angle([q0 q1 q2 q3]);
 
 % ro * eng_speed^2 * prop_dia^4
-%  vt / prop_dia / eng_speed/60
-%  cft_rpm * eng_speed / 60
+% vt / prop_dia / eng_speed/60
+% cft_rpm * eng_speed / 60
 % ft .:. thrust force 
 ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / eng_speed + cft_rpm * eng_speed / 60);
-% Model of the aerodynamic forces in wind frame
+% Model of the aerodynamic forces in stability
 
 % dyn_pressure * wing_tot_surf
-% % zf_w .:. lift force in wind frame %MAKO
+% % zf_s .:. lift force in stability %MAKO
 zf_s = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele);
 
-% % % zf_w .:. lift force in wind frame %MAKO 2nd version
-% zf_w = dyn_pressure * wing_tot_surf * (cz_0 + cz_alpha * alph)
-
-% % zf_w .:. lift force in wind frame %ETH
-% zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);  
-
-
-% % yf_w .:. lateral force in wind frame %MAKO
+% % yf_s .:. lateral force in stability frame %MAKO
 yf_s = dyn_pressure * wing_tot_surf * (cy_beta * bet + cy_p * p_tilda + cy_r * r_tilda + cy_ail * con_ail);
 
-% yf_w .:. lateral force in wind frame %ETH
-% yf_w = dyn_pressure * wing_tot_surf * (cy1 * bet); %ETH
-
-
-% xf_w .:. drag force in wind frame %MAKO
+% xf_s .:. drag force in stability frame %MAKO
 xf_s = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * (cz_0 + cz_alpha * alph + cz_q * q_tilda + cz_ele * con_ele)^2);
 
-
-% % xf_w .:. drag force in wind frame %MAKO 2nd version
-% xf_w = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * zf_w^2);
-
-% % xf_w .:. drag force in wind frame %constant drag
-% xf_s = dyn_pressure * wing_tot_surf * 0.03;
-
-% % xf_w .:. drag force in wind frame %ETH
-% xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
-% 									   cx_beta2 * bet^2);
-% 
-% % describe forces in body frame utilizing rotation matrix c^w_b
-% % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
-% % c_b_to_w = C^w_b
-% c_b_to_w = [cos(alph)* cos(bet) sin(bet) sin(alph) * cos(bet);...
-% -sin(bet) * cos(alph) cos(bet) -sin(alph) * sin(bet); -sin(alph) 0 cos(alph)];
+% aerodynamic forces in body frame (transformation from the stability frame)
+% attention! Multiplication with minus one comes from the definition of
+% forces in the stability frame in AVL (where the stability derivatives are
+% calculated) 
+aero_forces_body = c_body_to_stability' * [-xf_s; yf_s; -zf_s];
 
 force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...
-    ([ft; 0; 0] + [cos(alph) 0 sin(alph); 0 1 0; -sin(alph) 0 cos(alph)]' * [-xf_s; yf_s; -zf_s]);
+    ([ft; 0; 0] + aero_forces_body);
 
 % mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)]
 %  c_b_to_w' * [xf_w; yf_w; zf_w]
@@ -189,9 +181,6 @@ x_dot = c_n_to_b' * [u_b v_b w_b]';
 
 % dynamics for translational motion of the center of mass of the drone
 v_dot = force / mass - [(q * w_b - r * v_b); (r * u_b - p * w_b); (p * v_b - q * u_b)];
-
-% dynamics for engine speed
-%eng_speed_dot = - 1 / tho_n * eng_speed + 1 / tho_n * engine_ref;
 
 %state_dot = [q_dot; pqr_dot; x_dot; v_dot; eng_speed_dot];
 state_dot = [q_dot; pqr_dot; x_dot; v_dot];
