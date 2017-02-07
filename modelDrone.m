@@ -24,9 +24,9 @@
 
 function state_dot = modelDrone(state_prev, contr_deflect, wind_ned)
 
-global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia cl_alpha1 cl_ele1 cl_p 
-global cl_r cl_beta cm_1 cm_alpha1 cm_ele1 cm_q cm_alpha cn_rud_contr cn_r_tilda cn_beta cx1 
-global cx_alpha cx_alpha2 cx_beta2 cz_alpha cz1 cy1 cft1 cft2 cft3 tho_n nc
+global g_e mass inert wing_tot_surf wing_span m_wing_chord prop_dia nc tho_n
+global cl_ail1 cl_ele1 cl_p cl_r cl_beta cm_1 cm_ail1 cm_ele1 cm_q cm_alpha cn_rud cn_r cn_beta
+global cx0 cx_alpha cx_alpha2 cx_beta2 cz_alpha cz0 cy_beta cft1 cft2 cft3 
 
 quat_normalize_gain = 1;
 
@@ -105,12 +105,17 @@ r_tilda = wing_span * r / 2 / vt;
 q_tilda = m_wing_chord * q / 2 / vt;
 
 % calculation of aerodynamic derivatives
-% (In the equations % CLalpha2 = - CLalpha1 and so on used not to inject new names to namespace)
-cl = cl_alpha1 * con_ail1 - cl_alpha1 * con_ail2 + cl_ele1 * con_ele1 - cl_ele1 * con_ele2 ...
+% (In the equations cl_ail2 = - cl_ail1 
+%                   cl_ele2 = - cl_ele1 
+%                   cm_ail2 = cm_ail1
+%                   cm_ele2 = cm_ele1 
+% used not to inject new names to namespace)
+
+cl = cl_ail1 * con_ail1 - cl_ail1 * con_ail2 + cl_ele1 * con_ele1 - cl_ele1 * con_ele2 ...
 + cl_p * p_tilda + cl_r * r_tilda + cl_beta * bet;
-cm = cm_1 + cm_alpha1 * con_ail1 + cm_alpha1 * con_ail2 + cm_ele1 * con_ele1 + cm_ele1 * con_ele2 ...
+cm = cm_1 + cm_ail1 * con_ail1 + cm_ail1 * con_ail2 + cm_ele1 * con_ele1 + cm_ele1 * con_ele2 ...
 + cm_q * q_tilda + cm_alpha * alph;
-cn = cn_rud_contr * con_rud + cn_r_tilda * r_tilda + cn_beta * bet;
+cn = cn_rud * con_rud + cn_r * r_tilda + cn_beta * bet;
 
 l = dyn_pressure * wing_tot_surf * wing_span * cl;
 m = dyn_pressure * wing_tot_surf * m_wing_chord * cm;
@@ -127,12 +132,12 @@ ft = ro * eng_speed^2 * prop_dia^4 * (cft1 + cft2 * vt / prop_dia / pi / eng_spe
 									  cft3 * vt^2 / prop_dia^2 / pi^2 / eng_speed^2);
 % Model of the aerodynamic forces in wind frame
 % xf_w .:. drag force in wind frame
-xf_w = dyn_pressure * wing_tot_surf * (cx1 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
+xf_w = dyn_pressure * wing_tot_surf * (cx0 + cx_alpha * alph + cx_alpha2 * alph^2 + ...
 									   cx_beta2 * bet^2);
 % yf_w .:. lateral force in wind frame
-yf_w = dyn_pressure * wing_tot_surf * (cy1 * bet);
+yf_w = dyn_pressure * wing_tot_surf * (cy_beta * bet);
 % zf_w .:. lift force in wind frame
-zf_w = dyn_pressure * wing_tot_surf * (cz1 + cz_alpha * alph);
+zf_w = dyn_pressure * wing_tot_surf * (cz0 + cz_alpha * alph);
 
 % describe forces in body frame utilizing rotation matrix c^w_b
 % A^w = C^w_b * A^b     OR     A^b = C^b_w * A^w = (C^w_b)' * A^w  here
