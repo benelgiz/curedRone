@@ -15,12 +15,33 @@
 % You should have received a copy of the GNU General Public License
 % along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
 
-% inputs : stateInitial .:. States from the previous time t - 1. 
-%          VT .:. total airspeed of the aircraft
-%          conAil1, conAil2, conEle1,conEle2, conRud .:. controlTorques 
-
 % Attitude kinematic and dynamic equations of motion
-% Translational Motion 
+% Translational Motion of a drone
+
+% inputs : state_prev  .:. states from the previous time t - 1. 
+%                          state_prev = [q0 q1 q2 q3 p q r x_n y_e z_d u_b v_b w_b eng_speed]'
+%                          where;
+%                               q = q0 + q1 * i + q2 * j + q3 * k
+%                               w .:. describes the angular motion of the body 
+%                                     frame b with respect to navigation frame 
+%                                     North East Down(NED), expressed in body frame
+%                               w = [p q r]' 
+%                               x .:. position of the drone in NED reference frame
+%                               x = [x_n y_e z_d]'
+%                               v .:. inertial velocity vector of the drone center of mass 
+%                               v = [u_b v_b w_b]'
+%                               eng_speed .:. engine speed (modeled by a first-order linear
+%                                             system with time constant tho_n and the engine
+%                                             speed reference signal nc)
+%                                
+%        contr_deflect .:. control surface deflections
+%                          control_deflections = [contAileron1 contAileron2 contElevator1 contElevator2
+%                                                 contRudder]'
+%
+%          wind_ned    .:. wind disturbance in NED frame 
+%                          wind_ned = [wind_n wind_e wind_d]'
+
+% outputs : state_dot  .:. time derivative of states
 
 function state_dot = modelDrone(state_prev, contr_deflect, wind_ned)
 
