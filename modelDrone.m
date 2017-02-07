@@ -157,7 +157,7 @@ xf_s = dyn_pressure * wing_tot_surf * (cx_0 + cx_k * (cz_0 + cz_alpha * alph + c
 % aerodynamic forces in body frame (transformation from the stability frame)
 % attention! Multiplication with minus one comes from the definition of
 % forces in the stability frame in AVL (where the stability derivatives are
-% calculated) 
+% calculated)
 aero_forces_body = c_body_to_stability' * [-xf_s; yf_s; -zf_s];
 
 force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...

@@ -40,9 +40,6 @@ m_wing_chord = 0.21;
 % diameter of the propeller prop_dia [m]
 prop_dia = 0.228;
 
-% % time constant of the engine tho_n [s]
-% tho_n = 0.05;
-
 % roll derivatives 
 cl_ail = -0.1956e-2; 
 cl_p = -4.095e-1;
@@ -67,28 +64,15 @@ cz_alpha = 3.9444; %MAKO
 cz_q = 4.8198; %MAKO
 cz_ele = 1.6558e-2; %MAKO
 
-% cz_alpha = -3.25; %ETH UAV
-% cz1 = 1.29e-2;%ETH UAV
-
-% cz_0 = 0.047; %MAKO 2nd version 
-% cz_alpha = -0.06386; % MAKO 2nd version
-
 % % side force derivative
 cy_beta = -2.708e-1; %MAKO
-cy_p = 1.695e-1;%MAKO
-cy_r = 5.003e-2;%MAKO
-cy_ail = 0.0254e-2;%MAKO
-
-% cy1 = -3.79e-1;%ETH UAV
+cy_p = 1.695e-1; %MAKO
+cy_r = 5.003e-2; %MAKO
+cy_ail = 0.0254e-2; %MAKO
  
 % % drag derivative
 cx_0 = 2.313e-2;%MAKO
 cx_k = 1.897e-1; %MAKO
-
-% cx1 = -2.12e-2;%ETH UAV
-% cx_alpha = -2.66e-2;%ETH UAV
-% cx_alpha2 = -1.55;%ETH UAV
-% cx_beta2 = -4.01e-1;%ETH UAV
 
 % thrust derivatives 
 cft1 = 1.342e-1;
