@@ -39,11 +39,11 @@
 
 % outputs : state_dot  .:. time derivative of states
 
-function state_dot = modelDrone(state_prev, contr_input, wind_ned)
+function [state_dot] = modelDrone(state_prev, contr_input, wind_ned)
 
 global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
 global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
-global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm   
+global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm
 
 quat_normalize_gain = 1;
 
@@ -162,9 +162,6 @@ aero_forces_body = c_body_to_stability' * [-xf_s; yf_s; -zf_s];
 
 force = mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)] +...
     ([ft; 0; 0] + aero_forces_body);
-
-% mass * [- g_e * sin(teta); g_e * sin(fi) * cos(teta); g_e * cos(fi) * cos(teta)]
-%  c_b_to_w' * [xf_w; yf_w; zf_w]
 
 % Kinematic and dynamic equations of motion of the drone
 

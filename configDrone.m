@@ -18,6 +18,7 @@
 global g_e inert mass wing_tot_surf wing_span m_wing_chord prop_dia
 global cl_ail cl_p cl_r cl_beta cm_0 cm_ele cm_q cm_alpha cn_ail cn_p cn_r cn_beta 
 global cz_0 cz_alpha cz_q cz_ele cy_beta cy_p cy_r cy_ail cx_0 cx_k cft1 cft2 cft_rpm  
+global bias_acc std_acc bias_gyro std_gyro
 
 % Earth gravitational constant
 g_e = 9.81;
@@ -78,3 +79,9 @@ cx_k = 1.897e-1; %MAKO
 cft1 = 1.342e-1;
 cft2 = -1.975e-1;
 cft_rpm = 7.048e-6;
+
+% sensor characteristics (InvenSense - MPU 9250)
+bias_acc = [0.142 -0.3 0.19]'; % accelerometer bias
+std_acc = [0.0319 0.0985 0.049]'; % std of accelerometer noise
+bias_gyro = [-1.55 -1.13 -1.7]'; % gyro bias
+std_gyro = [0.0825 0.1673 0.2214]'; % std of gyro noise
