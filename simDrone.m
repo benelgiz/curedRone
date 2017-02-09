@@ -58,6 +58,7 @@ t_s = 0 : ti : tf;
 
 %% initialization with zeros for code efficiency
 x_real = zeros(13,length(t_s));
+sensor_sim_out = zeros(6,length(t_s));
 
 %% Inputs necessary for simulation
 % initial condition of the state vector
@@ -74,8 +75,12 @@ wind_ned = [0 0 0]';
 configDrone;
 
 %% Numeric integration of attitude and translational motion of drone
-for i=1:length(t_s)-1
+for i = 1:length(t_s)-1
   % Nonlinear attitude propagation
   % Integration via Runge - Kutta integration Algorithm
-  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_input, wind_ned, ti); 
+  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_input, wind_ned, ti);
+  
+  % Sensor simulation
+  state_dot = modelDrone(x_real(:, i+1), control_input, wind_ned);
+  sensor_sim_out(:,i+1) = sensorMeasSimu(x_real(11:13,i+1), state_dot(11:13), x_real(5:7,:), x_real(1:4));
 end
