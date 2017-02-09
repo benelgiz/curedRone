@@ -82,5 +82,5 @@ for i = 1:length(t_s)-1
   
   % Sensor simulation
   state_dot = modelDrone(x_real(:, i+1), control_input, wind_ned);
-  sensor_sim_out(:,i+1) = sensorMeasSimu(x_real(11:13,i+1), state_dot(11:13), x_real(5:7,:), x_real(1:4));
+  sensor_sim_out(:,i+1) = sensorMeasSimu(x_real(11:13,i+1), state_dot(11:13), x_real(5:7,i+1), x_real(1:4,i+1));
 end

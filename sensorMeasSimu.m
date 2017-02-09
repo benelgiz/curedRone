@@ -38,7 +38,7 @@
 
 function sensor_out_sim = sensorMeasSimu(v, v_dot, w, quat)
 
-global bias_acc std_acc bias_gyro std_gyro
+global g_e bias_acc std_acc bias_gyro std_gyro
 
 % translational velocity of drone
 u_b = v(1);
@@ -46,6 +46,12 @@ v_b = v(2);
 w_b = v(3);
 
 % angular velocity of the drone
+% convert from rad/s to deg/s
+w_degs = rad2deg(w);
+p_degs = w_degs(1);
+q_degs = w_degs(2);
+r_degs = w_degs(3);
+
 p = w(1);
 q = w(2);
 r = w(3);
@@ -53,13 +59,13 @@ r = w(3);
 % Quaternions to Euler Angles
 % tilda is to ignore output of the quat2angle function, since it is not
 % used, a warning appears otherwise
-[~, teta, fi] = quat2angle(quat);
+[~, teta, fi] = quat2angle([quat(1) quat(2) quat(3) quat(4)]);
 
 % sensor simulations
 % accelerometer simulation
 acc_out_sim =  (v_dot + [q * w_b - r * v_b + g_e * sin(teta); ...
     r * u_b - p * w_b - g_e * cos(teta) * sin(fi); ...
-    p * v_b - q * u_b - g_e * cos(teta) * cos(fi)])  / g_e +  bias_acc + std_acc .* randn(3,1);
+    p * v_b - q * u_b - g_e * cos(teta) * cos(fi)]) +  bias_acc + std_acc .* randn(3,1);
 % accelerometer simulation
-gyro_out_sim = [p q r]' + bias_gyro + std_gyro .* randn(3,1);
+gyro_out_sim = [p_degs q_degs r_degs]' + bias_gyro + std_gyro .* randn(3,1);
 sensor_out_sim = [acc_out_sim; gyro_out_sim];
