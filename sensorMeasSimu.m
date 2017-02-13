@@ -19,21 +19,23 @@
 % Translational Motion of a drone
 
 % inputs :                v .:. translational velocity vector 
-%                               of the drone center of mass
-%                               v = [u_b v_b w_b]  
+%                               of the drone center of mass [m/s]
+%                               v = [u_b v_b w_b]
 %
 %                    v_dot  .:. time derivative of v vector
 %                               (this derivation is in body frame) 
-%                               v_dot = [u_b_dot v_b_dot w_b_dot]'
+%                               v_dot = [u_b_dot v_b_dot w_b_dot]' [m/s/s]
 %
 %                         w .:. describes the angular motion of the body 
 %                               frame b with respect to navigation frame 
 %                               North East Down(NED), expressed in body frame
-%                               w = [p q r]' 
+%                               w = [p q r]' [rad/s]
 %                         quat .:. quaternions
 %                               q = q0 + q1 * i + q2 * j + q3 * k
 %
-% outputs : sensor_out_sim  .:. simulated sensor measurements -
+% outputs : sensor_out_sim  .:. simulated sensor measurements - 
+%                               acc_out_sim [m/s/s] 
+%                               gyro_out_sim [deg/s]
 %                               sensor_out_sim = [acc_out_sim; gyro_out_sim]
 
 function sensor_out_sim = sensorMeasSimu(v, v_dot, w, quat)
@@ -63,6 +65,7 @@ r = w(3);
 
 % sensor simulations
 % accelerometer simulation
+
 acc_out_sim =  (v_dot + [q * w_b - r * v_b + g_e * sin(teta); ...
     r * u_b - p * w_b - g_e * cos(teta) * sin(fi); ...
     p * v_b - q * u_b - g_e * cos(teta) * cos(fi)]) +  bias_acc + std_acc .* randn(3,1);

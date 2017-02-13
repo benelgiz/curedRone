@@ -26,7 +26,8 @@
 %                                     frame b with respect to navigation frame 
 %                                     North East Down(NED), expressed in body frame
 %                               w = [p q r]' 
-%                               x .:. position of the drone in NED reference frame
+%                               x .:. position of the drone in NED
+%                               reference frame [m]
 %                               x = [x_n y_e z_d]'
 %                               v .:. inertial velocity vector of the drone center of mass 
 %                               v = [u_b v_b w_b]'
@@ -134,7 +135,7 @@ moment_stabFrame = [l m n]';
 moment = c_body_to_stability' * moment_stabFrame;
 
 % tilda is to ignore output of the quat2angle function, since it is not
-% used, a warning appears otherwise
+% used, a warning appears otherwise. output angles are in radians.
 [~, teta, fi] = quat2angle([q0 q1 q2 q3]);
 
 % ro * eng_speed^2 * prop_dia^4
