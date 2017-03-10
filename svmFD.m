@@ -23,36 +23,58 @@ classNum = 2;
 
 % training set (around %70 percent of whole data set)
 
-wholeDataSet = [sensor_sim_out_normal'; sensor_sim_out_fault'];
-trainingDataExNumForEachClass = ceil(70 / 100 * (length(sensor_sim_out_normal)+length(sensor_sim_out_fault)))/classNum;
+feature_vec = [sensor_sim_out_normal'; sensor_sim_out_fault'];
 
-sensor_sim_out_normalt = sensor_sim_out_normal';
-sensor_sim_out_faultt = sensor_sim_out_fault';
+normal = repmat('normal', length(sensor_sim_out_normal'), 1);
+normal = cellstr(normal);
+fault = repmat('fault', length(sensor_sim_out_fault'), 1);
+fault = cellstr(fault);
+output_vec = vertcat(normal, fault);
+
+trainingDataExNum = ceil(70 / 100 * (length(feature_vec)));
 
 % Select %70 of data for training and leave the rest for testing
-randomSelectionColoumnNum = randperm(length(sensor_sim_out_normalt),trainingDataExNumForEachClass);
+randomSelectionColoumnNum = randperm(length(feature_vec),trainingDataExNum);
 
-training_data_normal = sensor_sim_out_normalt(randomSelectionColoumnNum, :);
-% test set for the normal class
-sensor_sim_out_normalt(randomSelectionColoumnNum, :) = [];
+% Training set for feature and output
+feature_vec_training = feature_vec(randomSelectionColoumnNum, :);
+output_vec_training = output_vec(randomSelectionColoumnNum, :);
 
-training_data_fault = sensor_sim_out_faultt(randomSelectionColoumnNum, :);
-% test set for the faulty class
-sensor_sim_out_faultt(randomSelectionColoumnNum, :) = [];
+% Test set for feature and output
 
-% training data set - %70 of whole data available
-training_data = [training_data_normal; training_data_fault];
+feature_vec_test = feature_vec;
+feature_vec_test(randomSelectionColoumnNum, :) = [];
 
-normal = repmat('normal', length(training_data_normal), 1);
-normal = cellstr(normal);
-fault = repmat('fault', length(training_data_fault), 1);
-fault = cellstr(fault);
-status = vertcat(normal, fault);
+output_vec_test = output_vec;
+output_vec_test(randomSelectionColoumnNum, :) = [];
 
 tic
-SVMModel = fitcsvm(training_data,status);
+SVMModel = fitcsvm(feature_vec_training,output_vec_training);
 toc
+% 
+sv = SVMModel.SupportVectors;
 
-test_data = [sensor_sim_out_normalt; sensor_sim_out_faultt];
-[label,score] = predict(SVMModel,test_data);
+% Plot results
+figure
+gscatter(feature_vec_training(:,1),feature_vec_training(:,2),output_vec_training)
+hold on
+plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
+legend('normal','fault','Support Vector')
+hold off
+set(legend,'FontSize',14);
+ylabel({'$a_y$'},...
+'FontUnits','points',...
+'interpreter','latex',...
+'FontSize',10,...
+'FontName','Times')
+ylabel({'$a_y$'},...
+'FontUnits','points',...
+'interpreter','latex',...
+'FontSize',10,...
+'FontName','Times')
+print -depsc2 figureDeneme.eps
+% 
+e = edge(SVMModel, feature_vec_test, output_vec_test);
+m = margin(SVMModel, feature_vec_test, output_vec_test);
+[label,score] = predict(SVMModel,feature_vec_test);
 
