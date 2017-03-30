@@ -19,17 +19,23 @@
 % This code assumes that you already have a data set of normal and faulty 
 % situation sensor outputs.
 
+% Select the number of classes
 classNum = 2;
 
+%% Arrange data
 % training set (around %70 percent of whole data set)
 
 feature_vec = [sensor_sim_out_normal'; sensor_sim_out_fault'];
 
-normal = repmat('normal', length(sensor_sim_out_normal'), 1);
-normal = cellstr(normal);
-fault = repmat('fault', length(sensor_sim_out_fault'), 1);
-fault = cellstr(fault);
-output_vec = vertcat(normal, fault);
+% normal = repmat('normal', length(sensor_sim_out_normal'), 1);
+% normal = cellstr(normal);
+% fault = repmat('fault', length(sensor_sim_out_fault'), 1);
+% fault = cellstr(fault);
+% output_vec = vertcat(normal, fault);
+
+normal(1:length(sensor_sim_out_normal'), 1) = 1;
+fault(1:length(sensor_sim_out_fault'), 1) = 2;
+output_vec = [normal;fault];
 
 trainingDataExNum = ceil(70 / 100 * (length(feature_vec)));
 
@@ -48,31 +54,33 @@ feature_vec_test(randomSelectionColoumnNum, :) = [];
 output_vec_test = output_vec;
 output_vec_test(randomSelectionColoumnNum, :) = [];
 
+%% SVM Call
 tic
 SVMModel = fitcsvm(feature_vec_training,output_vec_training);
 toc
 % 
 sv = SVMModel.SupportVectors;
 
-% Plot results
+%% Plot results
 figure
 gscatter(feature_vec_training(:,1),feature_vec_training(:,2),output_vec_training)
 hold on
-plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
-legend('normal','fault','Support Vector')
+% plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
+% legend('normal','fault','Support Vector')
+legend('normal','fault')
 hold off
-set(legend,'FontSize',14);
-ylabel({'$a_y$'},...
+set(legend,'FontSize',11);
+xlabel({'$a_x$'},...
 'FontUnits','points',...
 'interpreter','latex',...
-'FontSize',10,...
+'FontSize',15,...
 'FontName','Times')
 ylabel({'$a_y$'},...
 'FontUnits','points',...
 'interpreter','latex',...
-'FontSize',10,...
+'FontSize',15,...
 'FontName','Times')
-print -depsc2 figureDeneme.eps
+print -depsc2 feat1vsfeat2.eps
 % 
 e = edge(SVMModel, feature_vec_test, output_vec_test);
 m = margin(SVMModel, feature_vec_test, output_vec_test);
