@@ -1,3 +1,23 @@
+% Copyright 2016 Elgiz Baskaya
+
+% This file is part of curedRone.
+
+% curedRone is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% curedRone is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with curedRone.  If not, see <http://www.gnu.org/licenses/>.
+
+% This code reduces the dimension of the feature space to selected reduced
+% dimension utilizing PCA (Principle Componenent Analysis)
+
 % Number of class
 K = 2;
 
@@ -16,8 +36,13 @@ X = feature_vec;
 [U, S] = pca(X_norm);
 Z = projectData(X_norm, U, 2);
 
-%  Setup Color Palette
-palette = hsv(K);
-colors = palette(output_vec, :);
+% %  Setup Color Palette
+% palette = hsv(K);
+% colors = palette(output_vec, :);
 
-scatter(Z(:,1), Z(:,2),15,colors)
+gscatter(Z(:,1), Z(:,2),output_vec)
+legend('normal','fault','FontSize',9)
+xlabel('z_1')
+ylabel('z_2')
+set(gca,'FontSize',12)
+print -depsc2 reduceDimMeasurements.eps
