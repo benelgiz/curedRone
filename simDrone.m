@@ -67,7 +67,7 @@ sensor_sim_out = zeros(6,length(t_s));
 x_real(:,1) = [1 0 0 0 0 0 0 0 0 500 8 1e-5 1.7]';
 
 % controller inputs
-control_input = [0 0 110]';
+control_input = [4 0 110]';
 
 % wind disturbance
 wind_ned = [0 0 0]';
