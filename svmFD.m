@@ -22,7 +22,7 @@
 % Select the number of classes
 classNum = 2;
 
-feature_vec = [sensor_sim_out_normal'; sensor_sim_out_fault'];
+feature_vec = sensor_sim_out';
 
 % normal = repmat('normal', length(sensor_sim_out_normal'), 1);
 % normal = cellstr(normal);
@@ -30,9 +30,7 @@ feature_vec = [sensor_sim_out_normal'; sensor_sim_out_fault'];
 % fault = cellstr(fault);
 % output_vec = vertcat(normal, fault);
 
-normal(1:length(sensor_sim_out_normal'), 1) = 1;
-fault(1:length(sensor_sim_out_fault'), 1) = 2;
-output_vec = [normal;fault];
+output_vec = faultLabel;
 
 % %% Arrange training/validation sets
 % % 1 fold cross validation
@@ -61,11 +59,13 @@ output_vec = [normal;fault];
 
 % SVMModel is a trained ClassificationSVM classifier.
 tic
-SVMModel = fitcsvm(feature_vec,output_vec);
+SVMModel = fitcsvm(feature_vec,output_vec,'Standardize', true, 'ClassNames',{'nominal','fault'});
 toc
 
-
+% Support vectors
 sv = SVMModel.SupportVectors;
+
+ScoreSVMModel = fitPosterior(SVMModel)
 
 
 %% CROSS VALIDATION
@@ -98,13 +98,28 @@ min(escore)
 
 
 
-% Assess performance of classification via confusion matrix
+% [ScoreCVSVMModel,ScoreParameters] = fitSVMPosterior(CVSVMModel);
+
+%% Assess performance of classification via confusion matrix
+
+
+%% FIT POSTERIOR PROBABILITES firPosterior(SVMModel) / fitSVMPosterior(CVSVMModel)
+% "The transformation function computes the posterior probability 
+% that an observation is classified into the positive class (SVMModel.Classnames(2)).
+% The software fits the appropriate score-to-posterior-probability 
+% transformation function using the SVM classifier SVMModel, and 
+% by conducting 10-fold cross validation using the stored predictor data (SVMModel.X) 
+% and the class labels (SVMModel.Y) as outlined in REF : Platt, J. 
+% "Probabilistic outputs for support vector machines and comparisons 
+% to regularized likelihood methods". In: Advances in Large Margin Classifiers. 
+% Cambridge, MA: The MIT Press, 2000, pp. 61?74"
+
 
 %% Plot results
 figure
 gscatter(feature_vec(:,1),feature_vec(:,2),output_vec)
 hold on
-% plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
+plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
 % legend('normal','fault','Support Vector')
 legend('normal','fault')
 hold off
@@ -122,7 +137,7 @@ ylabel({'$a_y$'},...
 print -depsc2 feat1vsfeat2.eps
 
 %% PREDICTION PHASE
-e = edge(SVMModel, feature_vec_validation, output_vec_validation);
-m = margin(SVMModel, feature_vec_validation, output_vec_validation);
-[label,score] = predict(SVMModel,feature_vec_validation);
+% e = edge(SVMModel, feature_vec_validation, output_vec_validation);
+% m = margin(SVMModel, feature_vec_validation, output_vec_validation);
+[label,score] = predict(SVMModel,feature_vec);
 

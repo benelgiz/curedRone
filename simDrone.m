@@ -54,9 +54,16 @@
 ti = 0.02;
 % simulation duration in minutes
 sim_duration_min = 3;
+% start time of fault in minutes
+t_fault_init_min = 3;
 
 tf = 60 * sim_duration_min;
 t_s = 0 : ti : tf;
+
+% start time of fault in seconds
+t_fault = 60 * (t_fault_init_min - 1);
+% index of faulty situations during flight
+t_f = (t_fault / ti + 1) + 1 : length(t_s);
 
 %% initialization with zeros for code efficiency
 x_real = zeros(13,length(t_s));
@@ -67,7 +74,26 @@ sensor_sim_out = zeros(6,length(t_s));
 x_real(:,1) = [1 0 0 0 0 0 0 0 0 500 8 1e-5 1.7]';
 
 % controller inputs
-control_input = [1 0 110]';
+control_desired =  [4 0 110]' .* ones(3,length(t_s));
+
+% Simulating the fault
+% effectiveness of actuators
+% effectiveness before fault
+eff_matr_normal = diag([1 1 1]);
+% effectives after faultt
+eff_matr_fault = diag([0.25 1 1]);
+
+effect_actuators = cat(3, repmat(eff_matr_normal,[1 1 t_f(1) - 1]), repmat(eff_matr_fault,[1 1 length(t_f)]));
+
+control_input = zeros(3, length(t_s));
+for i = 1:length(t_s)-1 
+control_input(:,i) = effect_actuators(:,:,i) * control_desired(:,i); %+ acc_bias;
+end
+
+% Output as numerical data
+% faultLabel = [ones(t_f(1)-1,1); 2 * ones(length(t_f),1)];
+% Output as string data
+faultLabel = vertcat(cellstr(repmat('nominal', t_f(1) - 1, 1)), cellstr(repmat('fault', length(t_f), 1)));
 
 % wind disturbance
 wind_ned = [0 0 0]';
@@ -81,7 +107,7 @@ for i = 1:length(t_s)-1
     
   % Nonlinear attitude propagation
   % Integration via Runge - Kutta integration Algorithm
-  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_input, wind_ned, ti);
+  x_real(:,i+1) = rungeKutta4('modelDrone', x_real(:,i), control_input(:,i), wind_ned, ti);
   
   % Sensor simulation
   state_dot = modelDrone(x_real(:, i+1), control_input, wind_ned);
