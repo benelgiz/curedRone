@@ -41,5 +41,5 @@ gscatter(Z(:,1), Z(:,2),output_vec)
 legend('normal','fault')
 xlabel('z_1')
 ylabel('z_2')
-set(gca,'FontSize',12)
+set(gca,'FontSize',16)
 print -depsc2 reduceDimMeasurements.eps
