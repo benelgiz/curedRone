@@ -21,11 +21,8 @@
 % Number of class
 K = 2;
 
-feature_vec = [sensor_sim_out_normal'; sensor_sim_out_fault'];
-
-normal(1:length(sensor_sim_out_normal'), 1) = 1;
-fault(1:length(sensor_sim_out_fault'), 1) = 2;
-output_vec = [normal;fault];
+feature_vec = sensor_sim_out';
+output_vec = faultLabel;
 
 X = feature_vec;
 
@@ -41,8 +38,8 @@ Z = projectData(X_norm, U, 2);
 % colors = palette(output_vec, :);
 
 gscatter(Z(:,1), Z(:,2),output_vec)
-legend('normal','fault','FontSize',9)
+legend('normal','fault')
 xlabel('z_1')
 ylabel('z_2')
-set(gca,'FontSize',12)
+set(gca,'FontSize',16)
 print -depsc2 reduceDimMeasurements.eps
